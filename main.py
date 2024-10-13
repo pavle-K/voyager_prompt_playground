@@ -7,12 +7,18 @@ def load_json_file(file_path):
         return json.load(file)
     
 def normalize_string(s):
-    return ' '.join(s.split())
+    # Remove extra whitespace and normalize newlines
+    return ' '.join(s.replace('\n', ' ').split())
+
+def unescape_json_string(s):
+    # Unescape the JSON string
+    return json.loads(f'"{s}"')
 
 def find_matching_prompt(content, prompts):
     normalized_content = normalize_string(content)
     for key, value in prompts.items():
-        unescaped_value = json.loads(f'"{value}"')
+        # Unescape the JSON string and normalize it
+        unescaped_value = unescape_json_string(value)
         normalized_value = normalize_string(unescaped_value)
         if normalized_content == normalized_value:
             return key
@@ -36,7 +42,7 @@ def main():
     system_prompt_version = 1
     model = "gpt-3.5-turbo"
 
-    print("Testing system prompt ", system_prompt_key, " , version ", system_prompt_version," with model ", model, " for user prompt: ")
+    print(f"Testing system prompt {system_prompt_key}, version {system_prompt_version} with model {model} for user prompt: ")
     print(user_content)
 
     api_key = os.getenv('OPENAI_API_KEY')
