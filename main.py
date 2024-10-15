@@ -11,15 +11,18 @@ load_dotenv()
 
 langfuse = Langfuse()
 
-issue_path = 'generation_issues\generation_issue4.json'
 
-system_prompt_version = 1
-
+issue_path = 'generation_issues\generation_issue5.json'
+system_prompt_version = 4
 models = {
-    "gpt-3.5-turbo": os.getenv('OPENAI_API_KEY'),
+    #"gpt-3.5-turbo": os.getenv('OPENAI_API_KEY'),
+    'gpt-4o-mini-2024-07-18': os.getenv('OPENAI_API_KEY'),
     #"gpt-4o": os.getenv('OPENAI_API_KEY'),
     #"meta-llama/llama-3.1-405b-instruct:free": os.getenv('OPENROUTER_API_KEY') 
 }
+temperature = 1
+
+
 
 @observe()
 def load_json_file(file_path):
@@ -63,7 +66,7 @@ def deformat_prompt(formatted_prompt):
     return deformatted_prompt, added_data
 
 @observe()
-def process_model(model, api_key, system_prompt_version, system_content, user_content, prompts, added_data):
+def process_model(model, api_key, system_prompt_version, system_content, user_content, prompts, added_data, temperature):
     if "Here are some useful programs written with Mineflayer APIs." not in system_content:
         system_prompt_key = find_matching_prompt(system_content, prompts)
     else:
@@ -75,9 +78,9 @@ def process_model(model, api_key, system_prompt_version, system_content, user_co
     print(f"\nTesting system prompt {system_prompt_key}, version {system_prompt_version} with model {model} for user prompt: ")
     print(user_content)
 
-    response = call_model(system_prompt_key, system_prompt_version, user_content, model, api_key, added_data)
+    response = call_model(system_prompt_key, system_prompt_version, user_content, model, temperature, api_key, added_data)
 
-    langfuse_context.update_current_trace(name = f"sysPrompt:{system_prompt_key}version:{system_prompt_version}_model:{model}",tags=[f"Prompt tested: {system_prompt_key}", f"Prompt version: {system_prompt_version}", f"Model: {model}"])
+    langfuse_context.update_current_trace(name = "process_system_prompt",tags=[f"Prompt tested: {system_prompt_key}", f"Prompt version: {system_prompt_version}", f"Model: {model}"])
     trace_id = langfuse_context.get_current_observation_id()
 
     if response:
@@ -89,7 +92,9 @@ def process_model(model, api_key, system_prompt_version, system_content, user_co
                 metadata={
                     "model": model,
                     "system_prompt": system_prompt_key,
-                    "system_prompt_version": system_prompt_version
+                    "system_prompt_version": system_prompt_version,
+                    "temperature": temperature,
+                    "generation_issue": issue_path
                     }
                 )
     langfuse_context.flush()
@@ -114,7 +119,7 @@ def main():
         raise ValueError("Missing system or user content in generation_issue.json")
 
     for model, api_key in models.items():
-        process_model(model, api_key, system_prompt_version, system_content, user_content, prompts, added_data)
+        process_model(model, api_key, system_prompt_version, system_content, user_content, prompts, added_data, temperature)
 
 if __name__ == "__main__":
     main()

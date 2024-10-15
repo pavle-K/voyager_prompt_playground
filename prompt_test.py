@@ -10,7 +10,7 @@ load_dotenv()
 langfuse = Langfuse()
 
 @observe(as_type="generation")
-def call_model(system_prompt_key, system_prompt_version, user_prompt, model, api_key, added_data):
+def call_model(system_prompt_key, system_prompt_version, user_prompt, model, temperature, api_key, added_data):
     try:
         system_prompt = langfuse.get_prompt(system_prompt_key, version=system_prompt_version).compile()
 
@@ -28,7 +28,7 @@ def call_model(system_prompt_key, system_prompt_version, user_prompt, model, api
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature= 0
+                temperature= temperature
             )
 
     
@@ -41,7 +41,7 @@ def call_model(system_prompt_key, system_prompt_version, user_prompt, model, api
             response = client.chat.completions.create(
                     model=model,
                     messages=messages,
-                    temperature= 0
+                    temperature= temperature
                 )
 
         return response.choices[0].message.content
