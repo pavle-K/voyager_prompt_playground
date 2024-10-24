@@ -13,10 +13,16 @@ langfuse = Langfuse()
 def call_model(system_prompt_key, system_prompt_version, user_prompt, model, temperature, api_key, added_data):
     try:
         system_prompt = langfuse.get_prompt(system_prompt_key, version=system_prompt_version).compile()
-
+        
         if added_data:
-            system_prompt = system_prompt.format(**added_data)
-
+            # Replace the format placeholders with temporary markers
+            system_prompt = system_prompt.replace("{programs}", "%%PROGRAMS%%")
+            system_prompt = system_prompt.replace("{response_format}", "%%RESPONSE_FORMAT%%")
+            
+            # Now do the substitution without format()
+            system_prompt = system_prompt.replace("%%PROGRAMS%%", added_data['programs'])
+            system_prompt = system_prompt.replace("%%RESPONSE_FORMAT%%", added_data['response_format'])
+        
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}

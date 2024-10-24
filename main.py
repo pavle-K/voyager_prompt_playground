@@ -12,10 +12,10 @@ load_dotenv()
 langfuse = Langfuse()
 
 
-issue_path = 'generation_issues\issue_0.json'
+issue_path = 'generation_issues\issue_15_1.json'
 issue_id = re.search(r'issue_\d+', issue_path).group()
-system_prompt_version = 6
-action_response_format_version = 1
+system_prompt_version = 9
+action_response_format_version = 3
 models = {
     #"gpt-3.5-turbo": os.getenv('OPENAI_API_KEY'),
     'gpt-4o-mini-2024-07-18': os.getenv('OPENAI_API_KEY'),
