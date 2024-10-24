@@ -12,8 +12,10 @@ load_dotenv()
 langfuse = Langfuse()
 
 
-issue_path = 'generation_issues\generation_issue5.json'
-system_prompt_version = 4
+issue_path = 'generation_issues\issue_0.json'
+issue_id = re.search(r'issue_\d+', issue_path).group()
+system_prompt_version = 6
+action_response_format_version = 1
 models = {
     #"gpt-3.5-turbo": os.getenv('OPENAI_API_KEY'),
     'gpt-4o-mini-2024-07-18': os.getenv('OPENAI_API_KEY'),
@@ -60,7 +62,7 @@ def deformat_prompt(formatted_prompt):
 
     added_data = {
         "programs": programs.group(1).strip() if programs else "",
-        "response_format": response_format.group(1).strip() if response_format else ""
+        "response_format": langfuse.get_prompt("action_response_format.txt", version=action_response_format_version).compile()#response_format.group(1).strip() if response_format else ""
     }
 
     return deformatted_prompt, added_data
@@ -80,7 +82,7 @@ def process_model(model, api_key, system_prompt_version, system_content, user_co
 
     response = call_model(system_prompt_key, system_prompt_version, user_content, model, temperature, api_key, added_data)
 
-    langfuse_context.update_current_trace(name = "process_system_prompt",tags=[f"Prompt tested: {system_prompt_key}", f"Prompt version: {system_prompt_version}", f"Model: {model}"])
+    langfuse_context.update_current_trace(name = "process_system_prompt",tags=[f"Issue: {issue_id}",f"Prompt tested: {system_prompt_key}", f"Prompt version: {system_prompt_version}", f"Model: {model}", f"Temperature: {temperature}"])
     trace_id = langfuse_context.get_current_observation_id()
 
     if response:
@@ -102,6 +104,7 @@ def process_model(model, api_key, system_prompt_version, system_content, user_co
     print("\nModel response:")
     print(response)
 
+@observe()
 def main():
     added_data = None
     generation_issue = load_json_file(issue_path)
