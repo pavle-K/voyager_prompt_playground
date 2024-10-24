@@ -22,7 +22,7 @@ def call_model(system_prompt_key, system_prompt_version, user_prompt, model, tem
             # Now do the substitution without format()
             system_prompt = system_prompt.replace("%%PROGRAMS%%", added_data['programs'])
             system_prompt = system_prompt.replace("%%RESPONSE_FORMAT%%", added_data['response_format'])
-        
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -34,21 +34,20 @@ def call_model(system_prompt_key, system_prompt_version, user_prompt, model, tem
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature= temperature
+                temperature=temperature
             )
-
-    
+        
         elif 'llama' in model:
             client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=api_key
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key
             )
 
             response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature= temperature
-                )
+                model=model,
+                messages=messages,
+                temperature=temperature
+            )
 
         return response.choices[0].message.content
     except Exception as e:
